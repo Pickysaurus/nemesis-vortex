@@ -1,0 +1,48 @@
+#nemesis-config-dialog {
+
+    .modal-dialog {
+        max-width: 70vh;
+    }
+
+    .modal-body {
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden auto;
+    }
+
+    .nemesis-loadorder-container {
+        width: 90%;
+        margin: auto;
+    }
+
+    .nemesis-loadorder-header {
+        padding: 4px 15px;
+        border: 1px solid #fff;
+        background-color: var(--gray-lighter);
+    }
+
+    .list-group {
+        border: 1px solid white;
+        overflow: hidden auto;
+        height: 45vh;
+        margin-bottom: 16px;
+
+        .list-group-item {
+            width: 100%;
+            border-bottom: 1px solid #fff;
+        }
+    }
+}
+
+.nemesis-table-text {
+    width: 45%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 8px;
+}
+
+.nemesis-table-icons {
+    width: 5%;
+}
