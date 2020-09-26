@@ -1,9 +1,8 @@
-import { ComponentEx, Modal, types, util, log, FormInput, Icon, IconBar, FlexLayout, Toggle, Spinner, ToolbarIcon, selectors, DraggableList } from "vortex-api";
-import { Alert, Button, FormControl, ListGroup, ListGroupItem, Col, Row } from 'react-bootstrap';
+import { ComponentEx, Modal, types, util, log, Icon, Spinner, selectors, DraggableList } from "vortex-api";
+import { Alert, Button, ListGroupItem, Col, Row } from 'react-bootstrap';
 import * as React from 'react';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
-import { app, remote } from "electron";
 import { getNemesisPaths, getAvailableMods } from '../util/nemesisUtil';
 import { NemesisConfigData, NemesisModInfo, NemesisLoadOrderInfo } from "../types/types";
 
@@ -26,20 +25,6 @@ interface IConnectedProps {
 }
 
 type IProps = INemesisConfigProps & IConnectedProps;
-
-const version = (() => {
-    let result: string;
-
-    return () => {
-        if (result === undefined) {
-            const electronApp = remote !== undefined ? remote.app : app;
-            result = electronApp.getVersion();
-
-        }
-
-        return result;
-    }
-});
 
 type modalState = 'loading' | 'ready';
 
@@ -185,6 +170,7 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
     renderLoading(): JSX.Element {
         return (
             <>
+            <Spinner />
             Loading...
             </>
         );
@@ -206,7 +192,7 @@ function buildLoadOrder(mods: NemesisModInfo[], active: NemesisLoadOrderInfo[], 
     return loadOrder;
 }
 
-class NemesisItemRenderer extends ComponentEx<{item: NemesisModInfo, className: string}, {}> {
+class NemesisItemRenderer extends ComponentEx<NemesisItemRendererProps, {}> {
     render() {
         const { item, className } = this.props;
         return (
