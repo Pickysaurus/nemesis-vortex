@@ -1,7 +1,6 @@
 import { ComponentEx, Modal, types, util, log, Icon, Spinner, selectors, DraggableList, tooltip } from "vortex-api";
 import { Alert, Button, ButtonGroup, ListGroupItem, Col, Row } from 'react-bootstrap';
 import * as React from 'react';
-import Select from 'react-select';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { getNemesisPaths, getAvailableMods, buildLoadOrder } from '../util/nemesisUtil';
