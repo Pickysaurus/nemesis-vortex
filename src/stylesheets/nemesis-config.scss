@@ -13,7 +13,8 @@
 
     .nemesis-loadorder-container {
         width: 90%;
-        margin: auto;
+        margin: 0 auto;
+        margin-bottom: 8px;
     }
 
     .nemesis-loadorder-header {
@@ -25,8 +26,8 @@
     .list-group {
         border: 1px solid white;
         overflow: hidden auto;
-        height: 45vh;
-        margin-bottom: 16px;
+        height: 40vh;
+        margin-bottom: 4px;
 
         .list-group-item {
             width: 100%;
@@ -45,4 +46,11 @@
 
 .nemesis-table-icons {
     width: 5%;
+}
+
+.nemesis-loadorder-buttons {
+    display: flex;
+    margin: 0 auto;
+    width: 100%;
+    justify-content: space-evenly;
 }
