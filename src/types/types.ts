@@ -3,7 +3,7 @@ import { fs, types } from "vortex-api";
 
 class NemesisModInfo {
     // Folder name, treated as an index by Nemesis
-    public idx: string;
+    public id: string;
     // Animation Mod details
     public name: string;
     public author: string;
@@ -15,8 +15,8 @@ class NemesisModInfo {
     // Is this mod enabled
     public enabled: boolean;
 
-    constructor({idx, name, author, site, auto, hidden }) {
-        this.idx = idx;
+    constructor({id, name, author, site, auto, hidden }) {
+        this.id = id;
         this.name = name;
         this.author = author;
         this.site = site;

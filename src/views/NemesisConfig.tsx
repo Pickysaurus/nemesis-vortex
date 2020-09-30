@@ -115,12 +115,10 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
     }
 
     renderMain(): JSX.Element {
-        const { t, visible, mods } = this.props;
+        const { t, mods } = this.props;
         const { nemesis, error, running, loadOrder } = this.state;
 
         const installState: string = nemesis?.mod ? t('with Vortex') : t('manually');
-        const active = nemesis ? nemesis.getActive() : [];
-        const order = nemesis ? nemesis.getOrder() : [];
 
         return (
             <>
@@ -169,9 +167,10 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
     // }
 
     applyLoadOrder(order: NemesisModInfo[]): void {
-        const { nemesis } = this.state;
-        if (order.map(mod => mod.idx) === nemesis.getOrder()) return;
-        nemesis.updateOrderCache(order.map(mod => mod.idx));
+        const { nemesis, loadOrder } = this.state;
+        if (order.map(mod => mod.id) === nemesis.getOrder()) return;
+        this.nextState.loadOrder = loadOrder;
+        nemesis.updateOrderCache(order.map(mod => mod.id));
     }
     renderHeaderRow(): JSX.Element {
         return (
@@ -217,7 +216,7 @@ class NemesisItemRenderer extends ComponentEx<NemesisItemRendererProps, {}> {
         ) : <Icon name='' />;
 
         return (
-            <ListGroupItem className={className} key={item.idx}>
+            <ListGroupItem className={className} key={item.id}>
             <Row>
             <Col className='nemesis-table-icons'>
                 <input type='checkbox' checked={item.enabled} onClick={() => item.enabled = !item.enabled} />

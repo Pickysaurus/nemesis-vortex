@@ -95,7 +95,7 @@ async function getAvailableMods(modDir: string): Promise<NemesisModInfo[]> {
     return modInfo.filter(i => i !== undefined);
 }
 
-function modIniToObject(data: string, idx: string): NemesisModInfo {
+function modIniToObject(data: string, id: string): NemesisModInfo {
 
     const getRowData = (rows: string[], key: string):string|undefined => {
         const row = rows.find(r => r.toLowerCase().startsWith(key.toLowerCase()));
@@ -115,7 +115,7 @@ function modIniToObject(data: string, idx: string): NemesisModInfo {
             site: getRowData(rows, 'site'),
             auto: getRowData(rows, 'auto'),
             hidden: getRowData(rows, 'hidden'),
-            idx
+            id
         });
     }
     catch(err) {
@@ -166,9 +166,9 @@ function buildLoadOrder(mods: NemesisModInfo[], active: NemesisLoadOrderInfo[], 
         return mod;
     });
     // Filter out the mods that don't have an order position.
-    const orderlessMods = activeMods.filter(mod => !order.includes(mod.idx));
+    const orderlessMods = activeMods.filter(mod => !order.includes(mod.id));
     // Map mods by their order position, filter out the blanks and add on the orderless mods
-    let loadOrder = order.map(id => activeMods.find(mod => mod.idx === id)).filter(m => m !== undefined).concat(orderlessMods);
+    let loadOrder = order.map(id => activeMods.find(mod => mod.id === id)).filter(m => m !== undefined).concat(orderlessMods);
 
     return [... new Set(loadOrder)];
 }
