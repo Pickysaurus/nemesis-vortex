@@ -1,10 +1,12 @@
-import { ComponentEx, Modal, types, util, log, Icon, Spinner, selectors, DraggableList, tooltip } from "vortex-api";
+import { ComponentEx, Modal, types, util, Icon, Spinner, selectors, DraggableList } from "vortex-api";
 import { Alert, Button, ButtonGroup, ListGroupItem, Col, Row } from 'react-bootstrap';
 import * as React from 'react';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { getNemesisPaths, getAvailableMods, buildLoadOrder } from '../util/nemesisUtil';
-import { NemesisConfigData, NemesisModInfo, NemesisLoadOrderInfo } from "../types/types";
+import { NemesisConfigData, NemesisModInfo } from "../types/types";
+import { setLoadOrder } from '../actions/actions';
+import NemesisItemRenderer from './NemesisItemRenderer';
 
 export interface INemesisConfigProps {
     visible: boolean;
@@ -12,20 +14,23 @@ export interface INemesisConfigProps {
     localState: {
         reloadNecessary: boolean;
     };
-    updateExtensions: () => void;
-    onRefreshExtensions: () => void;
 }
 
 interface IConnectedProps {
-    gameId: string;
     game: types.IGame;
     gamePath: string;
     language: string;
     mods: { [modId: string]: types.IMod };
+    profile: types.IProfile;
     stagingPath: string;
+    loadOrder: NemesisModInfo[];
 }
 
-type IProps = INemesisConfigProps & IConnectedProps;
+interface IActionProps {
+    onSetLoadOrder: (profileId: string, loadOrder: NemesisModInfo[]) => void;
+}
+
+type IProps = INemesisConfigProps & IConnectedProps & IActionProps;
 
 type modalState = 'loading' | 'ready';
 
@@ -35,13 +40,8 @@ interface INemesisConfigState {
     nemesis: NemesisConfigData;
     mods: NemesisModInfo[];
     running: boolean;
-    loadOrder: NemesisModInfo[];
 }
 
-interface NemesisItemRendererProps {
-    item: NemesisModInfo;
-    className: string;
-}
 
 function nop() {
     //nop
@@ -57,7 +57,6 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
             nemesis: undefined,
             mods: [],
             running: false,
-            loadOrder: []
         });
     }
 
@@ -68,7 +67,7 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
     }
 
     private async start(): Promise<void> {
-        const { gamePath, mods } = this.props;
+        const { gamePath, mods, onSetLoadOrder, profile } = this.props;
         this.nextState.modalState = 'loading';
         this.nextState.error = undefined;
         try {
@@ -76,7 +75,7 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
             const availableMods = await getAvailableMods(nemesis.modsPath);
             this.nextState.nemesis = nemesis;
             this.nextState.mods = availableMods;
-            this.nextState.loadOrder = buildLoadOrder(availableMods, nemesis.getActive(), nemesis.getOrder());
+            onSetLoadOrder(profile.id, buildLoadOrder(availableMods, nemesis.getActive(), nemesis.getOrder()));
             this.nextState.modalState = 'ready';
         }
         catch(err) {
@@ -94,7 +93,7 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
         return (
             <Modal id='nemesis-config-dialog' show={visible} onHide={nop}>
                 <Modal.Header>
-                <h1>{t('Nemesis Unlimited Behaviour Engine')}</h1>
+                <h2><Icon name='nemesis' /> {t('Nemesis Unlimited Behaviour Engine')}</h2>
                 </Modal.Header>
                 <Modal.Body>
                     { modalState ? this.renderContent(modalState): undefined }
@@ -115,8 +114,8 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
     }
 
     renderMain(): JSX.Element {
-        const { t, mods } = this.props;
-        const { nemesis, error, running, loadOrder } = this.state;
+        const { t, mods, loadOrder } = this.props;
+        const { nemesis, error, running } = this.state;
 
         const installState: string = nemesis?.mod ? t('with Vortex') : t('manually');
 
@@ -149,14 +148,17 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
     }
 
     toggleAllMods(enable) {
-        const { nemesis, loadOrder } = this.state;
+        const { loadOrder, profile, onSetLoadOrder } = this.props;
+        const { nemesis } = this.state;
 
-        this.nextState.loadOrder = loadOrder.map(mod => {
+        const newLO = loadOrder.map(mod => {
             mod.enabled = enable;
             return mod;
-        });
+        })
 
-        nemesis.updateActiveMods(this.nextState.loadOrder.filter(mod => mod.enabled));
+        onSetLoadOrder(profile.id, newLO);
+
+        nemesis.updateActiveMods(newLO.filter(mod => mod.enabled));
     }
 
     // openStagingFolder() {
@@ -167,11 +169,16 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
     // }
 
     applyLoadOrder(order: NemesisModInfo[]): void {
-        const { nemesis, loadOrder } = this.state;
+        const { profile, onSetLoadOrder} = this.props;
+        const { nemesis } = this.state;
+
         if (order.map(mod => mod.id) === nemesis.getOrder()) return;
-        this.nextState.loadOrder = loadOrder;
+
+        onSetLoadOrder(profile.id, order);
+
         nemesis.updateOrderCache(order.map(mod => mod.id));
     }
+
     renderHeaderRow(): JSX.Element {
         return (
             <ListGroupItem className='nemesis-loadorder-header'>
@@ -204,46 +211,15 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
 
 }
 
-class NemesisItemRenderer extends ComponentEx<NemesisItemRendererProps, {}> {
-    render() {
-        const { item, className } = this.props;
-
-        const autoIcon = item.auto ? (
-            <tooltip.Icon 
-                name='smart' className={item.auto ? 'enabled' : 'disabled'} 
-                tooltip={`Relies on this file in the Data folder:\n${item.auto}` || 'No automatic detection.'} 
-            />
-        ) : <Icon name='' />;
-
-        return (
-            <ListGroupItem className={className} key={item.id}>
-            <Row>
-            <Col className='nemesis-table-icons'>
-                <input type='checkbox' checked={item.enabled} onClick={() => item.enabled = !item.enabled} />
-            </Col>
-            <Col className='nemesis-table-text' title={item.name}>
-                {item.name}
-            </Col>
-            <Col className='nemesis-table-text' title={item.author}>
-                {item.author}
-            </Col>
-            <Col className='nemesis-table-icons'>
-                {autoIcon} {' '}
-                <a onClick={() => util.opn(item.site)} title={item.site} target='_blank'><Icon name='open-in-browser' /></a>
-            </Col>
-            </Row>
-            </ListGroupItem>
-        );
-    }
-}
-
 
 function mapStateToProps(state: types.IState): IConnectedProps {
     const gameId = selectors.activeGameId(state);
+    const profile = selectors.activeProfile(state);
 
     return {
+        profile,
+        loadOrder: util.getSafe(state, ['settings', 'nemesis', profile?.id, 'loadOrder'], []),
         game: selectors.gameById(gameId),
-        gameId: gameId,
         gamePath: util.getSafe(state, ['settings', 'gameMode', 'discovered', gameId, 'path'], undefined),
         language: state.settings.interface.language,
         mods: util.getSafe(state, ['persistent', 'mods', gameId], {}),
@@ -251,4 +227,10 @@ function mapStateToProps(state: types.IState): IConnectedProps {
     }
 } 
 
-export default withTranslation([ 'common' ])(connect(mapStateToProps)(NemesisConfig));
+function mapDispatchToProps(dispatch: any): IActionProps {
+    return  {
+        onSetLoadOrder: (profileId, loadOrder) => dispatch(setLoadOrder(profileId, loadOrder))
+    };
+}
+
+export default withTranslation([ 'common' ])(connect(mapStateToProps, mapDispatchToProps)(NemesisConfig));

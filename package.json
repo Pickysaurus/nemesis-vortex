@@ -7,7 +7,7 @@
   "scripts": {
     "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --display-error-details --progress --profile --color",
     "bundle7z": "7z a -t7z sample-extension.7z .\\dist\\index.js .\\dist\\info.json",
-    "build": "npm run webpack && copyfiles -f src/stylesheets/* dist && extractInfo"
+    "build": "npm run webpack && copyfiles -f src/stylesheets/* dist &&  copyfiles -f src/images/* dist/images && extractInfo"
   },
   "author": "Pickysaurus",
   "license": "GPL-3.0",
@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "react-i18next": "^11.7.0",
-    "react-redux": "^7.2.0"
+    "react-redux": "^7.2.0",
+    "redux-act": "^1.8.0"
   }
 }

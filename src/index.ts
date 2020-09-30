@@ -1,6 +1,7 @@
 import { actions, log, types, util } from 'vortex-api';
 import ExtensionsBrowser from './views/NemesisConfig';
 import * as path from 'path';
+import nemesisReducer from './reducers/reducers';
 
 interface ILocalState {
   reloadNecessary: boolean;
@@ -11,37 +12,23 @@ const localState: ILocalState = util.makeReactive({
 });
 
 function main(context: types.IExtensionContext) {
-  const updateExtensions = genUpdateInstalledExtensions(context.api);
 
-  const forceUpdateExtensions = () => {
-    updateAvailableExtensions(context.api, true);
-  };
+  context.registerReducer(['settings', 'nemesis'], nemesisReducer)
 
-  context.registerAction('mod-icons', 200, 'menu', {}, 'Nemesis', () => {
+  context.registerAction('mod-icons', 200, 'nemesis', {}, 'Nemesis', () => {
     context.api.store.dispatch(actions.setDialogVisible('nemesis-config'));
   })
 
   context.registerDialog('nemesis-config', ExtensionsBrowser, () => ({
-    localState,
-    updateExtensions,
-    onRefreshExtensions: forceUpdateExtensions,
+    localState
   }));
 
   context.once(() => {
+    util.installIconSet('xedit-icons', `${__dirname}/images/nemesis-icon.svg`);
     context.api.setStylesheet('better-extensions', path.join(__dirname, 'nemesis-config.scss'));
   });
 
   return true;
-}
-
-function updateAvailableExtensions(api: types.IExtensionApi, force: boolean = false) {
-  // Dummy function for now. 
-  return Promise.resolve();
-}
-
-function genUpdateInstalledExtensions(api: types.IExtensionApi) {
-  // Dummy function for now.
-  return Promise.resolve();
 }
 
 export default main;
