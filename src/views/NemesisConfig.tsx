@@ -4,9 +4,10 @@ import * as React from 'react';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { getNemesisPaths, getAvailableMods, buildLoadOrder } from '../util/nemesisUtil';
-import { NemesisConfigData, NemesisModInfo } from "../types/types";
+import { NemesisConfigData, NemesisModInfo, INemesisRunningState } from "../types/types";
 import { setLoadOrder } from '../actions/actions';
 import NemesisItemRenderer from './NemesisItemRenderer';
+import NemesisControls from './NemesisControls'
 
 export interface INemesisConfigProps {
     visible: boolean;
@@ -39,7 +40,7 @@ interface INemesisConfigState {
     modalState: modalState;
     nemesis: NemesisConfigData;
     mods: NemesisModInfo[];
-    running: boolean;
+    running: INemesisRunningState;
 }
 
 
@@ -56,7 +57,7 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
             modalState: undefined,
             nemesis: undefined,
             mods: [],
-            running: false,
+            running: undefined,
         });
     }
 
@@ -84,6 +85,10 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
             this.nextState.mods = [];
             this.nextState.modalState = 'ready';
         }
+    }
+
+    setRunning(newState?: INemesisRunningState) {
+        this.nextState.running = newState;
     }
     
     render() {
@@ -124,7 +129,7 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
             {error ? <Alert>Error: {error.message}</Alert> : undefined}
             <p>{t('Nemesis an animation framework that enables behavior mods like CGO, SkySA, Ultimate Combat and most FNIS dependent mods to work together. '+
             'Using the table below you can enable or disable animation mods and reorder their priority by dragging and dropping each item.')}</p>
-            <p>{t('Nemesis {{version}} has been installed {{installState}}.', { replace: { installState, version: nemesis?.version || '???' }})}</p>
+            {!!nemesis ? <p>{t('Nemesis {{version}} has been installed {{installState}}.', { replace: { installState, version: nemesis?.version || '???' }})}</p> : ''}
             <div className='nemesis-loadorder-container'>
                 {this.renderHeaderRow()}
                 <DraggableList 
@@ -137,12 +142,12 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
                 />
                 <a onClick={() => this.toggleAllMods(true)}>Enable all</a> | <a onClick={() => this.toggleAllMods(false)}>Disable all</a>
             </div>
-            <ButtonGroup className='nemesis-loadorder-buttons'>
-            <Button disabled={!nemesis || running}><Icon name='smart' /> {t('Detect Mods')}</Button>
-            <Button disabled={!nemesis || running}><Icon name='refresh' /> {t('Update Engine')}</Button>
-            <Button disabled={!nemesis || running}><Icon name='launch-application' /> {t('Run Nemesis')}</Button>
-            </ButtonGroup>
-            <select>{Object.keys(mods).map(mod => <option>{mods[mod].id}</option>)}</select>
+            <NemesisControls 
+                nemesis={nemesis}
+                running={running}
+                setRunning={this.setRunning.bind(this)}
+                mods={mods}
+            />
             </>
         );
     }
@@ -150,6 +155,10 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
     toggleAllMods(enable) {
         const { loadOrder, profile, onSetLoadOrder } = this.props;
         const { nemesis } = this.state;
+
+        if (!nemesis) {
+            return this.nextState.error = new Error('Nemesis isn\'t installed, you silly sausage!');
+        }
 
         const newLO = loadOrder.map(mod => {
             mod.enabled = enable;

@@ -1,6 +1,8 @@
 import * as path from 'path';
 import { fs, types } from "vortex-api";
 
+type INemesisRunningState = undefined | 'auto-check' | 'updating' | 'running';
+
 class NemesisModInfo {
     // Folder name, treated as an index by Nemesis
     public id: string;
@@ -78,4 +80,4 @@ class NemesisConfigData {
     }
 }
 
-export { NemesisModInfo, NemesisConfigData, NemesisLoadOrderInfo };
+export { NemesisModInfo, NemesisConfigData, NemesisLoadOrderInfo, INemesisRunningState };
