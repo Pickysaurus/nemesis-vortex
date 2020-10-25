@@ -26,7 +26,7 @@
     .list-group {
         border: 1px solid white;
         overflow: hidden auto;
-        height: 40vh;
+        height: 35vh;
         margin-bottom: 4px;
 
         .list-group-item {
@@ -53,4 +53,10 @@
     margin: 0 auto;
     width: 100%;
     justify-content: space-evenly;
+}
+
+.nemesis-loadorder-busy {
+    margin: 0 auto;
+    text-align: center;
+    font-size: 1.25em;
 }

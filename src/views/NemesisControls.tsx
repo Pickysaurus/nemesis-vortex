@@ -1,14 +1,18 @@
 import * as React from 'react';
 import { withTranslation } from 'react-i18next';
-import { ComponentEx, Icon, DropdownButton, types } from 'vortex-api';
-import { NemesisConfigData, INemesisRunningState } from "../types/types";
+import { ComponentEx, Icon, DropdownButton, types, util } from 'vortex-api';
+import { NemesisConfigData, INemesisRunningState, NemesisModInfo } from "../types/types";
 import { Button, ButtonGroup, MenuItem } from 'react-bootstrap';
+import { detectModsToEnable, updateNemesisEngine, runNemesis } from '../util/nemesisUtil';
 
 interface NemesisControlProps {
     nemesis: NemesisConfigData;
     running: INemesisRunningState;
     setRunning: (newState?: INemesisRunningState) => void;
     mods: {[id: string]: types.IMod};
+    gamePath: string;
+    loadOrder: NemesisModInfo[];
+    applyLoadOrder: (order: NemesisModInfo[]) => void;
 }
 
 interface NemesisControlState {
@@ -68,7 +72,7 @@ class NemesisControls extends ComponentEx<NemesisControlProps, NemesisControlSta
             default: busyMessage = t('The Nemesis extension has encountered an error. You may need to restart Vortex.');
         }
 
-        return (<p><Icon name='spinner' /> {busyMessage}...</p>);
+        return (<div className='nemesis-loadorder-busy'><Icon name='spinner' /> {busyMessage}...</div>);
     }
 
     setOutput(name: string) {
@@ -77,9 +81,10 @@ class NemesisControls extends ComponentEx<NemesisControlProps, NemesisControlSta
 
     async detectMods() {
         // Look for "auto" files for each mod in the data directory.
-        const { setRunning } = this.props;
+        const { setRunning, gamePath, loadOrder, applyLoadOrder } = this.props;
         setRunning('auto-check');
-        await dummyPromise();
+        const newLO: NemesisModInfo[] = await detectModsToEnable(gamePath, loadOrder);
+        applyLoadOrder(newLO);
         setRunning();
     }
 

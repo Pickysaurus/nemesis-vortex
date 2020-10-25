@@ -173,6 +173,24 @@ function buildLoadOrder(mods: NemesisModInfo[], active: NemesisLoadOrderInfo[], 
     return [... new Set(loadOrder)];
 }
 
+async function detectModsToEnable(gamePath: string, loadOrder: NemesisModInfo[]): Promise<NemesisModInfo[]> {
+    const dataFolder = path.join(gamePath, 'Data');
+    for(let mod of loadOrder) {
+        if (!mod.auto) continue;
+        try {
+            const checkPath = path.join(dataFolder, mod.auto);
+            await fs.statAsync(checkPath);
+            mod.enabled = true;
+        }
+        catch {
+            mod.enabled = false;
+        }
+    }
+    
+    return loadOrder;
+
+}
+
 async function updateNemesisEngine(appPath: string, stagingPath?: string) {
     // Run the exe with the argument -update
 }
@@ -181,4 +199,4 @@ async function runNemesis(appPath: string, outputPath: string, loadIds: string[]
     // Run the exe with the arguments -generate followed by the loadIds in priority order and -stage followed by the output folder
 }
 
-export { getNemesisPaths, getAvailableMods, buildLoadOrder };
+export { getNemesisPaths, getAvailableMods, buildLoadOrder, detectModsToEnable, updateNemesisEngine, runNemesis };

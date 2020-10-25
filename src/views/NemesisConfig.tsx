@@ -119,7 +119,7 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
     }
 
     renderMain(): JSX.Element {
-        const { t, mods, loadOrder } = this.props;
+        const { t, mods, loadOrder, gamePath } = this.props;
         const { nemesis, error, running } = this.state;
 
         const installState: string = nemesis?.mod ? t('with Vortex') : t('manually');
@@ -128,8 +128,8 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
             <>
             {error ? <Alert>Error: {error.message}</Alert> : undefined}
             <p>{t('Nemesis an animation framework that enables behavior mods like CGO, SkySA, Ultimate Combat and most FNIS dependent mods to work together. '+
-            'Using the table below you can enable or disable animation mods and reorder their priority by dragging and dropping each item.')}</p>
-            {!!nemesis ? <p>{t('Nemesis {{version}} has been installed {{installState}}.', { replace: { installState, version: nemesis?.version || '???' }})}</p> : ''}
+            'Using the table below you can enable or disable animation mods and reorder their priority by dragging and dropping each item.')} 
+            {!!nemesis ? t('Nemesis {{version}} has been installed {{installState}}.', { replace: { installState, version: nemesis?.version || '???' }}) : ''}</p>
             <div className='nemesis-loadorder-container'>
                 {this.renderHeaderRow()}
                 <DraggableList 
@@ -147,6 +147,9 @@ class NemesisConfig extends ComponentEx<IProps, INemesisConfigState> {
                 running={running}
                 setRunning={this.setRunning.bind(this)}
                 mods={mods}
+                gamePath={gamePath}
+                loadOrder={loadOrder || []}
+                applyLoadOrder={this.applyLoadOrder.bind(this)}
             />
             </>
         );

@@ -34,8 +34,8 @@ class NemesisItemRenderer extends ComponentEx<NemesisItemRendererProps, {}> {
 
         const autoIcon = item.auto ? (
             <tooltip.Icon 
-                name='smart' className={item.auto ? 'enabled' : 'disabled'} 
-                tooltip={t('Relies on this file in the Data folder:')+`\n${item.auto}` || t('No automatic detection.')} 
+                name='smart' 
+                tooltip={t('Relies on this file in the Data folder:')+`\n${item.auto}`} 
             />
         ) : <Icon name='' />;
 
@@ -63,6 +63,7 @@ class NemesisItemRenderer extends ComponentEx<NemesisItemRendererProps, {}> {
     toggleMod() {
         const { profile, item, onToggleMod } = this.props;
         onToggleMod(profile.id, item.id, !item.enabled);
+        this.forceUpdate();
     }
 }
 
